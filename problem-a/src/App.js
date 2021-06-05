@@ -1,29 +1,38 @@
 import React, { useState } from 'react'; //import React Component
-import {AboutPage, ResourcesPage} from './About';
+import { AboutPage, ResourcesPage } from './About';
 import AdoptPage from './AdoptPet';
 import './App.css'; //import css file!
+import {Route, Link, Redirect, Switch, NavLink } from 'react-router-dom';
 
 import SAMPLE_DOGS from './dogs.json'; //a sample list of dogs (model)
 
 function App(props) {
-
   const pets = SAMPLE_DOGS; //pretend this was loaded externally or via prop
 
+  let renderPetList = (renderProps) => <PetList {...renderProps} pets={pets} />;
   return (
     <div>
       <header className="jumbotron jumbotron-fluid py-4">
         <div className="container">
-          <h1>Adopt a Pet</h1>
+          <h1>
+            <Link to="/"> Adopt a Pet</Link>
+          </h1>
         </div>
       </header>
-    
+
       <main className="container">
         <div className="row">
           <div className="col-3">
             <AboutNav />
           </div>
           <div className="col-9">
-            <PetList pets={pets} />
+            <Switch>
+              <Route exact path="/" render={renderPetList}></Route>
+              <Route path="/about" component={AboutPage}></Route>
+              <Route path="/resources" component={ResourcesPage}></Route>
+              <Route path="/adopt/:petName" component={AdoptPage} />
+              <Redirect to="/" />
+            </Switch>
           </div>
         </div>
       </main>
@@ -31,8 +40,8 @@ function App(props) {
       <footer className="container">
         <small>Images from <a href="http://www.seattlehumane.org/adoption/dogs">Seattle Humane Society</a></small>
       </footer>
-    </div>
-  );
+    </div >
+  )
 }
 
 function AboutNav() {
@@ -40,9 +49,9 @@ function AboutNav() {
     <nav id="aboutLinks">
       <h2>About</h2>
       <ul className="list-unstyled">
-        <li><a href="/">Adopt a Pet</a></li>
-        <li><a href="/about">About Us</a></li>
-        <li><a href="/resources">Resources</a></li>
+        <li><NavLink exact to="/" activeClassName="activeLink">Adopt a Pet</NavLink></li>
+        <li><NavLink to="/about" activeClassName="activeLink">About Us</NavLink></li>
+        <li><NavLink to="/resources" activeClassName="activeLink">Resources</NavLink></li>
       </ul>
     </nav>
   );
@@ -65,11 +74,15 @@ function PetList(props) {
 }
 
 function PetCard(props) {
-
+  const [redirectTo, setRedirectTo] = useState(undefined);
   const handleClick = () => {
     console.log("You clicked on", props.pet.name);
+    setRedirectTo(props.pet.name);
   }
 
+  if(redirectTo) {
+    return <Redirect push to={'/adopt/' + redirectTo}/>;
+  }
   let pet = props.pet; //shortcut
   return (
     <div className="card clickable" onClick={handleClick}>
